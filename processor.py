@@ -64,7 +64,7 @@ from collections import defaultdict
 class UnifiedParkingMerger:
     """Unified parking data merger for Excel to JSON conversion."""
 
-    def __init__(self, parking_records_file: str, parking_table_file: str, output_file: str = "merged_parking_data.json"):
+    def __init__(self, parking_records_file: str, parking_table_file: str, output_file: str = "parking_data.json"):
         self.parking_records_file = parking_records_file
         self.parking_table_file = parking_table_file
         self.output_file = output_file
@@ -663,7 +663,7 @@ def main():
 
     parking_records_file = sys.argv[1]
     parking_table_file = sys.argv[2]
-    output_file = sys.argv[3] if len(sys.argv) > 3 else "merged_parking_data.json"
+    output_file = sys.argv[3] if len(sys.argv) > 3 else "parking_data.json"
 
     # Create and run unified merger
     merger = UnifiedParkingMerger(parking_records_file, parking_table_file, output_file)
