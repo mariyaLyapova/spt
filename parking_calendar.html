@@ -1,0 +1,1306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ParkMonitor Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .upload-section {
+            margin-bottom: 30px;
+        }
+
+        .upload-zone {
+            background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 40px 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            box-shadow: 0 10px 30px rgba(52, 73, 94, 0.3);
+        }
+
+        .upload-zone:hover {
+            transform: scale(1.02);
+        }
+
+        .upload-zone::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+            transform: rotate(45deg);
+            transition: all 0.5s;
+        }
+
+        .upload-zone:hover::before {
+            animation: shine 0.5s ease-in-out;
+        }
+
+        @keyframes shine {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+
+        .upload-icon {
+            font-size: 3.5em;
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        .upload-title {
+            font-size: 1.8em;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .upload-subtitle {
+            font-size: 1.1em;
+            opacity: 0.9;
+            margin-bottom: 20px;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .upload-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .upload-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .calendar-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: none;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .quarter-selector {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .nav-btn {
+            background: #34495e;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .nav-btn:hover {
+            background: #2c3e50;
+        }
+
+        .quarter-year {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #2c3e50;
+            min-width: 250px;
+            text-align: center;
+        }
+
+        .quarterly-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .month-container {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .month-header {
+            text-align: center;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #ecf0f1;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 1px;
+            background: #ecf0f1;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .day-header {
+            background: #34495e;
+            color: white;
+            padding: 15px 5px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .day-cell {
+            background: white;
+            min-height: 50px;
+            padding: 3px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .day-cell:hover {
+            background: #f8f9fa;
+        }
+
+        .day-cell.other-month {
+            background: #f8f9fa;
+            color: #bdc3c7;
+        }
+
+        .day-cell.weekend {
+            background: #fef9e7;
+            border-left: 3px solid #f39c12;
+        }
+
+        .day-cell.weekend .day-number {
+            color: #e67e22;
+        }
+
+        .day-number {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .car-count {
+            margin-top: auto;
+            text-align: center;
+            font-size: 0.8em;
+            color: #3498db;
+            font-weight: bold;
+        }
+
+        .month-summary {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #ecf0f1;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            text-align: center;
+        }
+
+        .summary-item {
+            background: #f8f9fa;
+            padding: 6px;
+            border-radius: 5px;
+        }
+
+        .summary-value {
+            font-size: 1em;
+            font-weight: bold;
+            color: #3498db;
+        }
+
+        .summary-label {
+            font-size: 0.7em;
+            color: #7f8c8d;
+        }
+
+        @media (max-width: 1200px) {
+            .quarterly-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .day-cell {
+                min-height: 40px;
+                padding: 2px;
+            }
+            .car-count {
+                font-size: 0.7em;
+            }
+        }
+
+        /* Parking Map Modal */
+        .parking-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .parking-modal-content {
+            background: white;
+            margin: 1% auto;
+            padding: 15px;
+            border-radius: 15px;
+            width: 95vw;
+            height: 92vh;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .parking-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #ecf0f1;
+            gap: 15px;
+        }
+
+        .parking-modal-title {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .nav-btn {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(52, 152, 219, 0.3);
+        }
+
+        .nav-btn:hover {
+            background: linear-gradient(135deg, #2980b9, #3498db);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(52, 152, 219, 0.4);
+        }
+
+        .nav-btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .close-modal {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close-modal:hover {
+            background: #c0392b;
+        }
+
+        .parking-areas {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            padding: 15px;
+            flex: 1;
+            overflow: hidden;
+            height: 100%;
+        }
+
+        .parking-location {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 10px;
+            border: 1px solid #dee2e6;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        .parking-location.has-cars {
+            border-color: #27ae60;
+            background: #f0f8f0;
+        }
+
+        .location-header {
+            font-size: 0.9em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid #ecf0f1;
+            text-align: center;
+        }
+
+        .location-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 3px;
+            flex: 1;
+        }
+
+        .parking-area {
+            background: #f8f9fa;
+            border-radius: 6px;
+            padding: 6px;
+            border: 1px solid #dee2e6;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            max-height: 300px;
+        }
+
+        .parking-area.has-cars {
+            border-color: #007bff;
+            background: #e7f1ff;
+        }
+
+
+        .area-header {
+            font-weight: bold;
+            color: #495057;
+            margin-bottom: 4px;
+            text-align: left;
+            font-size: 12px;
+            border-bottom: 1px solid #dee2e6;
+            padding-bottom: 3px;
+            flex-shrink: 0;
+        }
+
+        .parking-spots {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            background: #ffffff;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 6px;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .parking-spot {
+            width: 100%;
+            height: 45px;
+            border: 1px solid #bdc3c7;
+            border-radius: 3px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.55em;
+            font-weight: bold;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            text-align: center;
+            line-height: 1.1;
+            padding: 2px;
+        }
+
+        .parking-spot:hover {
+            transform: scale(1.05);
+            z-index: 10;
+            box-shadow: 0 2px 8px rgba(39, 174, 96, 0.3);
+        }
+
+        .parking-spot.occupied {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+            border-color: #27ae60;
+        }
+
+        /* Car color variations */
+        .parking-spot.car-color-1 { background: linear-gradient(135deg, #38a169, #2f855a); border-color: #2f855a; }
+        .parking-spot.car-color-2 { background: linear-gradient(135deg, #3182ce, #2c5282); border-color: #2c5282; }
+        .parking-spot.car-color-3 { background: linear-gradient(135deg, #38a169, #2f855a); border-color: #2f855a; }
+        .parking-spot.car-color-4 { background: linear-gradient(135deg, #d69e2e, #b7791f); border-color: #b7791f; }
+        .parking-spot.car-color-5 { background: linear-gradient(135deg, #805ad5, #6b46c1); border-color: #6b46c1; }
+        .parking-spot.car-color-6 { background: linear-gradient(135deg, #dd6b20, #c05621); border-color: #c05621; }
+        .parking-spot.car-color-7 { background: linear-gradient(135deg, #e53e3e, #c53030); border-color: #c53030; }
+        .parking-spot.car-color-8 { background: linear-gradient(135deg, #319795, #2c7a7b); border-color: #2c7a7b; }
+        .parking-spot.car-color-9 { background: linear-gradient(135deg, #9f7aea, #805ad5); border-color: #805ad5; }
+        .parking-spot.car-color-10 { background: linear-gradient(135deg, #ed8936, #dd6b20); border-color: #dd6b20; }
+
+        .parking-spot.empty {
+            background: #ecf0f1;
+            color: #95a5a6;
+            border-color: #bdc3c7;
+        }
+
+        .section-divider {
+            grid-column: 1 / -1;
+            height: 20px;
+            background: linear-gradient(90deg, transparent, #bdc3c7, transparent);
+            margin: 10px 0;
+            border-radius: 10px;
+        }
+
+        .spot-number {
+            font-size: 0.9em;
+            font-weight: bold;
+            margin-bottom: 1px;
+        }
+
+        .spot-plate {
+            font-size: 0.8em;
+            opacity: 0.9;
+        }
+
+
+        .area-summary {
+            margin-top: 3px;
+            padding: 2px 4px;
+            background: rgba(52, 152, 219, 0.1);
+            border-radius: 3px;
+            text-align: center;
+            font-size: 0.6em;
+            color: #2c3e50;
+            flex-shrink: 0;
+        }
+
+        .summary {
+            margin-top: 10px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .summary-card {
+            background: #f8f9fa;
+            padding: 8px;
+            border-radius: 4px;
+            text-align: center;
+            border: 1px solid #dee2e6;
+        }
+
+        .summary-card h3 {
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .summary-card .value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #3498db;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚗 ParkMonitor Dashboard</h1>
+            <p>Upload your parking data JSON file to monitor daily vehicle access patterns</p>
+        </div>
+
+        <div class="upload-section">
+            <div class="upload-zone" onclick="document.getElementById('jsonFile').click()">
+                <div class="upload-icon">☁️</div>
+                <div class="upload-title">Upload Parking Data</div>
+                <div class="upload-subtitle">Click to select your JSON file or drag & drop here</div>
+                <button class="upload-btn" onclick="event.stopPropagation(); document.getElementById('jsonFile').click()">Choose File</button>
+                <input type="file" id="jsonFile" accept=".json" class="file-input">
+            </div>
+            <div id="status" class="status"></div>
+        </div>
+
+        <div id="calendarContainer" class="calendar-container">
+            <div class="calendar-header">
+                <div class="quarter-selector">
+                    <button onclick="previousQuarter()" class="nav-btn">‹ Previous</button>
+                    <div id="quarterYear" class="quarter-year"></div>
+                    <button onclick="nextQuarter()" class="nav-btn">Next ›</button>
+                </div>
+            </div>
+
+            <div class="quarterly-grid" id="quarterlyGrid">
+                <!-- Three months will be generated here -->
+            </div>
+
+            <div class="summary" id="summary">
+                <!-- Summary stats will be generated here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Parking Location Modal -->
+    <div id="parkingModal" class="parking-modal">
+        <div class="parking-modal-content">
+            <div class="parking-modal-header">
+                <button class="nav-btn" id="prevDayBtn" onclick="navigateDay(-1)">‹ Previous</button>
+                <div class="parking-modal-title" id="modalTitle">Parking Locations</div>
+                <button class="nav-btn" id="nextDayBtn" onclick="navigateDay(1)">Next ›</button>
+                <button class="close-modal" onclick="closeParkingModal()">×</button>
+            </div>
+
+            <div class="parking-areas" id="parkingAreas">
+                <!-- Parking areas will be dynamically generated here -->
+            </div>
+
+            <div class="summary" id="modalSummary">
+                <!-- Summary cards will be generated here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let parkingData = null;
+        let currentQuarter = 1;
+        let currentYear = 2025;
+        let currentModalDate = null;
+        let dailyCounts = {};
+
+        const monthNames = [
+            'January', 'February', 'March', 'April', 'May', 'June',
+            'July', 'August', 'September', 'October', 'November', 'December'
+        ];
+
+        const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+            status.style.display = 'block';
+        }
+
+        function loadJsonFile() {
+            const fileInput = document.getElementById('jsonFile');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                showStatus('Please select a JSON file first', 'error');
+                return;
+            }
+
+            processFile(file);
+        }
+
+        function processFile(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    parkingData = JSON.parse(e.target.result);
+
+                    // Validate the JSON structure
+                    if (!parkingData.records || !Array.isArray(parkingData.records)) {
+                        throw new Error('Invalid JSON structure: missing records array');
+                    }
+
+                    // Process the data
+                    processParkingData();
+                    showStatus(`Successfully loaded ${parkingData.records.length} parking records`, 'success');
+
+                    // Show calendar
+                    document.getElementById('calendarContainer').style.display = 'block';
+                    generateQuarterView();
+
+                } catch (error) {
+                    showStatus(`Error loading JSON: ${error.message}`, 'error');
+                    console.error('JSON parsing error:', error);
+                }
+            };
+
+            reader.readAsText(file);
+        }
+
+        // Add drag and drop functionality
+        function setupDragAndDrop() {
+            const uploadZone = document.querySelector('.upload-zone');
+
+            uploadZone.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                uploadZone.style.transform = 'scale(1.05)';
+                uploadZone.style.background = 'linear-gradient(135deg, #3498db 0%, #2980b9 100%)';
+            });
+
+            uploadZone.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                uploadZone.style.transform = 'scale(1)';
+                uploadZone.style.background = '';
+            });
+
+            uploadZone.addEventListener('drop', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                uploadZone.style.transform = 'scale(1)';
+                uploadZone.style.background = '';
+
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    const file = files[0];
+                    if (file.type === 'application/json' || file.name.endsWith('.json')) {
+                        document.getElementById('jsonFile').files = files;
+                        processFile(file);
+                    } else {
+                        showStatus('Please drop a JSON file', 'error');
+                    }
+                }
+            });
+        }
+
+        function processParkingData() {
+            dailyCounts = {};
+
+            parkingData.records.forEach(record => {
+                // Only count "enter" direction
+                if (record.direction === 'enter') {
+                    const date = new Date(record.datetime);
+                    const dateKey = date.toISOString().split('T')[0]; // YYYY-MM-DD format
+
+                    if (!dailyCounts[dateKey]) {
+                        dailyCounts[dateKey] = 0;
+                    }
+                    dailyCounts[dateKey]++;
+                }
+            });
+
+            console.log('Daily counts processed:', Object.keys(dailyCounts).length, 'days');
+        }
+
+        function generateQuarterView() {
+            // Update year display
+            document.getElementById('quarterYear').textContent = `${currentYear}`;
+
+            // Clear previous calendar
+            const grid = document.getElementById('quarterlyGrid');
+            grid.innerHTML = '';
+
+            // Get the three months for current quarter
+            const quarterMonths = getQuarterMonths(currentQuarter);
+
+            quarterMonths.forEach(monthIndex => {
+                const monthContainer = createMonthContainer(currentYear, monthIndex);
+                grid.appendChild(monthContainer);
+            });
+
+            // Generate summary for current quarter
+            generateQuarterlySummary();
+        }
+
+        function getQuarterMonths(quarter) {
+            const quarters = {
+                1: [0, 1, 2],    // Jan, Feb, Mar
+                2: [3, 4, 5],    // Apr, May, Jun
+                3: [6, 7, 8],    // Jul, Aug, Sep
+                4: [9, 10, 11]   // Oct, Nov, Dec
+            };
+            return quarters[quarter];
+        }
+
+        function createMonthContainer(year, month) {
+            const container = document.createElement('div');
+            container.className = 'month-container';
+
+            // Month header
+            const header = document.createElement('div');
+            header.className = 'month-header';
+            header.textContent = `${monthNames[month]} ${year}`;
+            container.appendChild(header);
+
+            // Calendar grid
+            const grid = document.createElement('div');
+            grid.className = 'calendar-grid';
+
+            // Add day headers
+            dayNames.forEach(day => {
+                const dayHeader = document.createElement('div');
+                dayHeader.className = 'day-header';
+                dayHeader.textContent = day;
+                grid.appendChild(dayHeader);
+            });
+
+            // Get first day of month and number of days
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const daysInMonth = lastDay.getDate();
+
+            // Convert Sunday-based day to Monday-based
+            let startingDayOfWeek = firstDay.getDay();
+            startingDayOfWeek = (startingDayOfWeek === 0) ? 6 : startingDayOfWeek - 1;
+
+            // Add empty cells for days before the first day
+            for (let i = 0; i < startingDayOfWeek; i++) {
+                const emptyCell = document.createElement('div');
+                emptyCell.className = 'day-cell other-month';
+                grid.appendChild(emptyCell);
+            }
+
+            let monthTotal = 0;
+            let monthDaysWithData = 0;
+
+            // Add days of the month
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayCell = document.createElement('div');
+                dayCell.className = 'day-cell';
+
+                // Check if weekend
+                const currentDay = new Date(year, month, day);
+                const dayOfWeek = currentDay.getDay();
+                if (dayOfWeek === 0 || dayOfWeek === 6) {
+                    dayCell.classList.add('weekend');
+                }
+
+                const dayNumber = document.createElement('div');
+                dayNumber.className = 'day-number';
+                dayNumber.textContent = day;
+                dayCell.appendChild(dayNumber);
+
+                // Check for data
+                const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const count = dailyCounts[dateKey] || 0;
+
+                if (count > 0) {
+                    monthTotal += count;
+                    monthDaysWithData++;
+
+                    const countElement = document.createElement('div');
+                    countElement.className = 'car-count';
+                    countElement.textContent = count;
+                    dayCell.appendChild(countElement);
+                }
+
+                // Make all days clickable, not just days with data
+                dayCell.onclick = () => showDayDetails(dateKey, count);
+
+                grid.appendChild(dayCell);
+            }
+
+            container.appendChild(grid);
+
+            // Add monthly summary
+            const summary = document.createElement('div');
+            summary.className = 'month-summary';
+
+            const totalItem = document.createElement('div');
+            totalItem.className = 'summary-item';
+            totalItem.innerHTML = `<div class="summary-value">${monthTotal}</div><div class="summary-label">Total</div>`;
+
+            const avgItem = document.createElement('div');
+            avgItem.className = 'summary-item';
+            const avg = monthDaysWithData > 0 ? (monthTotal / monthDaysWithData).toFixed(1) : 0;
+            avgItem.innerHTML = `<div class="summary-value">${avg}</div><div class="summary-label">Avg/Day</div>`;
+
+            const daysItem = document.createElement('div');
+            daysItem.className = 'summary-item';
+            daysItem.innerHTML = `<div class="summary-value">${monthDaysWithData}</div><div class="summary-label">Days</div>`;
+
+            summary.appendChild(totalItem);
+            summary.appendChild(avgItem);
+            summary.appendChild(daysItem);
+            container.appendChild(summary);
+
+            return container;
+        }
+
+
+        function showDayDetails(dateKey, count) {
+            // Store current date for navigation
+            currentModalDate = dateKey;
+
+            const date = new Date(dateKey);
+            const formattedDate = date.toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+
+            // Update modal title
+            document.getElementById('modalTitle').textContent = `${formattedDate} - ${count} Car Entries`;
+
+            // Get cars for this specific date
+            const dayRecords = parkingData.records.filter(record => {
+                const recordDate = new Date(record.datetime);
+                const recordDateKey = recordDate.toISOString().split('T')[0];
+                return recordDateKey === dateKey && record.direction === 'enter';
+            });
+
+            // Generate parking areas visualization
+            generateParkingAreas(dayRecords, formattedDate, dateKey);
+
+            // Update navigation button states
+            updateNavigationButtons();
+
+            // Show the modal
+            document.getElementById('parkingModal').style.display = 'block';
+        }
+
+        function closeParkingModal() {
+            document.getElementById('parkingModal').style.display = 'none';
+        }
+
+        function navigateDay(direction) {
+            if (!currentModalDate) return;
+
+            const currentDate = new Date(currentModalDate);
+            const newDate = new Date(currentDate);
+            newDate.setDate(currentDate.getDate() + direction);
+
+            const newDateKey = newDate.toISOString().split('T')[0];
+
+            // Check if there's data for this date
+            const newCount = dailyCounts[newDateKey] || 0;
+
+            // Update the modal with the new date
+            showDayDetails(newDateKey, newCount);
+        }
+
+        function updateNavigationButtons() {
+            if (!currentModalDate) return;
+
+            const currentDate = new Date(currentModalDate);
+
+            // Calculate previous and next dates
+            const prevDate = new Date(currentDate);
+            prevDate.setDate(currentDate.getDate() - 1);
+            const prevDateKey = prevDate.toISOString().split('T')[0];
+
+            const nextDate = new Date(currentDate);
+            nextDate.setDate(currentDate.getDate() + 1);
+            const nextDateKey = nextDate.toISOString().split('T')[0];
+
+            // Get all available dates from the data
+            const availableDates = Object.keys(dailyCounts);
+            const minDate = new Date(Math.min(...availableDates.map(d => new Date(d))));
+            const maxDate = new Date(Math.max(...availableDates.map(d => new Date(d))));
+
+            // Update button states
+            const prevBtn = document.getElementById('prevDayBtn');
+            const nextBtn = document.getElementById('nextDayBtn');
+
+            prevBtn.disabled = currentDate <= minDate;
+            nextBtn.disabled = currentDate >= maxDate;
+        }
+
+        // Close modal when clicking outside of it
+        window.onclick = function(event) {
+            const modal = document.getElementById('parkingModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        function generateParkingAreas(dayRecords, formattedDate, dateKey) {
+            const parkingAreasContainer = document.getElementById('parkingAreas');
+            const modalSummary = document.getElementById('modalSummary');
+
+            parkingAreasContainer.innerHTML = '';
+            modalSummary.innerHTML = '';
+
+            if (!parkingData.locations || !parkingData.cars) {
+                parkingAreasContainer.innerHTML = '<p>No parking data available.</p>';
+                return;
+            }
+
+            // Get unique cars that entered on this day
+            const dayPlates = [...new Set(dayRecords.map(record => record.plate))];
+
+            console.log('Debug - Day records:', dayRecords.length);
+            console.log('Debug - Day plates:', dayPlates);
+
+            // Group cars by location
+            const locationGroups = {};
+            let totalOccupied = 0;
+            let totalEmployees = 0;
+            let totalGuests = 0;
+
+            // Create a mapping function to match car locations to location categories
+            function getLocationCategory(carLocation) {
+                if (!carLocation) return null;
+
+                const location = carLocation.toLowerCase();
+
+                if (location.includes('подземен')) {
+                    return 'underground';
+                } else if (location.includes('покрит паркинг')) {
+                    return 'covered_parking';
+                } else if (location.includes('малък английски двор')) {
+                    return 'small_courtyard';
+                } else if (location.includes('голям английски двор')) {
+                    return 'large_courtyard';
+                } else if (location.includes('офис')) {
+                    return 'office_area';
+                } else if (location.includes('център')) {
+                    return 'center_area';
+                } else if (location.includes('външен')) {
+                    return 'external_area';
+                } else if (location.includes('депо')) {
+                    return 'depot';
+                }
+
+                return 'other';
+            }
+
+            // Function to extract spot number from location
+            function extractSpotNumber(location) {
+                if (!location) return null;
+                // Extract spot number like А33, A44, В73, etc.
+                const match = location.match(/^([АA-ZВ]\d+)/);
+                return match ? match[1] : null;
+            }
+
+            // Separate array for cars without assigned spots (guests)
+            const guestCars = [];
+
+            // Group cars by their locations
+            dayPlates.forEach(plate => {
+                const carInfo = parkingData.cars[plate];
+                if (carInfo) {
+                    if (carInfo.location && carInfo.location.trim() !== '') {
+                        // Car has assigned location (employee)
+                        const locationCategory = getLocationCategory(carInfo.location);
+                        const spotNumber = extractSpotNumber(carInfo.location);
+
+                        if (!locationGroups[locationCategory]) {
+                            locationGroups[locationCategory] = {
+                                cars: [],
+                                carsBySpot: {},
+                                employeeCount: 0,
+                                guestCount: 0
+                            };
+                        }
+
+                        const carData = {
+                            plate: plate,
+                            name: carInfo.name || 'Unknown',
+                            isEmployee: carInfo.active_employee || false,
+                            originalLocation: carInfo.location,
+                            spotNumber: spotNumber
+                        };
+
+                        locationGroups[locationCategory].cars.push(carData);
+
+                        // Map car to specific spot
+                        if (spotNumber) {
+                            locationGroups[locationCategory].carsBySpot[spotNumber] = carData;
+                        }
+
+                        if (carInfo.active_employee) {
+                            locationGroups[locationCategory].employeeCount++;
+                            totalEmployees++;
+                        } else {
+                            locationGroups[locationCategory].guestCount++;
+                            totalGuests++;
+                        }
+                        totalOccupied++;
+                    } else {
+                        // Car without assigned location = guest
+                        guestCars.push({
+                            plate: plate,
+                            name: carInfo.name || 'Unknown',
+                            isEmployee: false, // Always treat as guest
+                            originalLocation: 'Guest parking'
+                        });
+                        totalGuests++;
+                        totalOccupied++;
+                    }
+                }
+            });
+
+            console.log('Debug - Location groups:', locationGroups);
+
+            // Create compact grid for each location
+            Object.entries(parkingData.locations).forEach(([locationKey, locationInfo]) => {
+                const locationDiv = document.createElement('div');
+                locationDiv.className = 'parking-location';
+
+                const cars = locationGroups[locationKey] || { cars: [], carsBySpot: {}, employeeCount: 0, guestCount: 0 };
+                const carsInLocation = Object.keys(cars.carsBySpot).length;
+
+                if (carsInLocation > 0) {
+                    locationDiv.classList.add('has-cars');
+                }
+
+                // Location header
+                const headerDiv = document.createElement('div');
+                headerDiv.className = 'location-header';
+                headerDiv.textContent = `${locationInfo.name} (${carsInLocation} cars)`;
+                locationDiv.appendChild(headerDiv);
+
+                // Create compact grid for this location
+                const gridDiv = document.createElement('div');
+                gridDiv.className = 'location-grid';
+
+                // Always show ALL spots for this location, mark occupied ones
+                if (locationInfo.spots && locationInfo.spots.length > 0) {
+                    locationInfo.spots.forEach(spotNumber => {
+                        const spotDiv = document.createElement('div');
+                        spotDiv.className = 'parking-spot';
+
+                        // Check if this specific spot is occupied on this day
+                        const car = cars.carsBySpot && cars.carsBySpot[spotNumber];
+
+                        if (car) {
+                            // This spot is occupied by a car on this day
+                            spotDiv.classList.add('occupied');
+                            spotDiv.innerHTML = `
+                                <div class="spot-number">${spotNumber}</div>
+                                <div class="spot-plate">${car.plate}</div>
+                            `;
+                            spotDiv.title = `OCCUPIED: ${car.plate} - ${car.name}\nSpot: ${spotNumber}`;
+                        } else {
+                            // This spot is empty on this day
+                            spotDiv.classList.add('empty');
+                            spotDiv.innerHTML = `<div class="spot-number">${spotNumber}</div>`;
+                            spotDiv.title = `Empty spot: ${spotNumber}`;
+                        }
+
+                        gridDiv.appendChild(spotDiv);
+                    });
+                } else if (cars.cars.length > 0) {
+                    // If no specific spots defined, show cars as generic numbered spots
+                    cars.cars.forEach((car, index) => {
+                        const spotDiv = document.createElement('div');
+                        spotDiv.className = 'parking-spot occupied';
+                        spotDiv.innerHTML = `
+                            <div class="spot-number">${index + 1}</div>
+                            <div class="spot-plate">${car.plate}</div>
+                        `;
+                        spotDiv.title = `OCCUPIED: ${car.plate} - ${car.name}`;
+                        gridDiv.appendChild(spotDiv);
+                    });
+                }
+
+                locationDiv.appendChild(gridDiv);
+
+                // Always show all locations to see full parking layout
+                if (locationInfo.spots?.length > 0) {
+                    parkingAreasContainer.appendChild(locationDiv);
+                }
+            });
+
+            // Add guest parking section if there are cars without assigned spots
+            if (guestCars.length > 0) {
+                const guestLocationDiv = document.createElement('div');
+                guestLocationDiv.className = 'parking-location has-cars';
+
+                // Guest location header
+                const guestHeaderDiv = document.createElement('div');
+                guestHeaderDiv.className = 'location-header';
+                guestHeaderDiv.textContent = `GUEST PARKING (${guestCars.length} cars)`;
+                guestLocationDiv.appendChild(guestHeaderDiv);
+
+                // Create grid for guest cars
+                const guestGridDiv = document.createElement('div');
+                guestGridDiv.className = 'location-grid';
+
+                guestCars.forEach((car, index) => {
+                    const spotDiv = document.createElement('div');
+                    spotDiv.className = 'parking-spot occupied';
+                    spotDiv.innerHTML = `
+                        <div class="spot-number">G${index + 1}</div>
+                        <div class="spot-plate">${car.plate}</div>
+                    `;
+                    spotDiv.title = `GUEST: ${car.plate} - ${car.name}`;
+                    guestGridDiv.appendChild(spotDiv);
+                });
+
+                guestLocationDiv.appendChild(guestGridDiv);
+                parkingAreasContainer.appendChild(guestLocationDiv);
+            }
+
+            // Generate summary cards
+            const summaryData = [
+                { title: 'Total Cars', value: totalOccupied },
+                { title: 'Employees', value: totalEmployees },
+                { title: 'Guests', value: totalGuests },
+                { title: 'Locations Used', value: Object.keys(locationGroups).length }
+            ];
+
+            summaryData.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'summary-card';
+                card.innerHTML = `
+                    <h3>${item.title}</h3>
+                    <div class="value">${item.value}</div>
+                `;
+                modalSummary.appendChild(card);
+            });
+        }
+
+        function generateQuarterlySummary() {
+            const summary = document.getElementById('summary');
+            summary.innerHTML = '';
+
+            // Calculate quarterly statistics
+            let totalEntries = 0;
+            let daysWithData = 0;
+            let maxDayCount = 0;
+            let minDayCount = Infinity;
+
+            const quarterMonths = getQuarterMonths(currentQuarter);
+
+            quarterMonths.forEach(month => {
+                const monthStart = `${currentYear}-${String(month + 1).padStart(2, '0')}-01`;
+                const monthEnd = month === 11 ?
+                    `${currentYear + 1}-01-01` :
+                    `${currentYear}-${String(month + 2).padStart(2, '0')}-01`;
+
+                Object.entries(dailyCounts).forEach(([dateKey, count]) => {
+                    if (dateKey >= monthStart && dateKey < monthEnd) {
+                        totalEntries += count;
+                        daysWithData++;
+                        maxDayCount = Math.max(maxDayCount, count);
+                        minDayCount = Math.min(minDayCount, count);
+                    }
+                });
+            });
+
+            const avgDailyEntries = daysWithData > 0 ? (totalEntries / daysWithData).toFixed(1) : 0;
+            minDayCount = minDayCount === Infinity ? 0 : minDayCount;
+
+            // Create summary cards
+            const summaryData = [
+                { title: 'Quarter Total', value: totalEntries },
+                { title: 'Daily Average', value: avgDailyEntries },
+                { title: 'Busiest Day', value: maxDayCount },
+                { title: 'Quietest Day', value: minDayCount },
+                { title: 'Active Days', value: daysWithData }
+            ];
+
+            summaryData.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'summary-card';
+                card.innerHTML = `
+                    <h3>${item.title}</h3>
+                    <div class="value">${item.value}</div>
+                `;
+                summary.appendChild(card);
+            });
+        }
+
+        function previousQuarter() {
+            if (currentQuarter === 1) {
+                currentQuarter = 4;
+                currentYear--;
+            } else {
+                currentQuarter--;
+            }
+            generateQuarterView();
+        }
+
+        function nextQuarter() {
+            if (currentQuarter === 4) {
+                currentQuarter = 1;
+                currentYear++;
+            } else {
+                currentQuarter++;
+            }
+            generateQuarterView();
+        }
+
+        // Initialize with current quarter when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set default to Q1 2025 based on your data
+            currentQuarter = 1;
+            currentYear = 2025;
+
+            // Setup drag and drop functionality
+            setupDragAndDrop();
+
+            // Add file input change listener
+            document.getElementById('jsonFile').addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    processFile(file);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

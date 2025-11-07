@@ -1,0 +1,1787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parking Spots Playback Visualizer</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 2em;
+            font-weight: bold;
+            background: linear-gradient(135deg, #3498db, #9b59b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            flex-wrap: wrap;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+        }
+
+        .btn-success {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #229954;
+        }
+
+        .btn-warning {
+            background: #f39c12;
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #e67e22;
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        .speed-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .speed-slider {
+            width: 120px;
+        }
+
+        .date-filter {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .date-input {
+            padding: 8px 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .date-input:focus {
+            border-color: #3498db;
+            outline: none;
+        }
+
+        .date-picker-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+
+        .hidden-date-picker {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .filter-info {
+            background: #e8f4fd;
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 10px;
+            font-size: 14px;
+            color: #2c3e50;
+            text-align: center;
+        }
+
+        .timeline-container {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 2px solid #e9ecef;
+        }
+
+        .timeline-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .timeline-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .current-time {
+            font-size: 18px;
+            color: #3498db;
+            font-weight: bold;
+        }
+
+        .timeline-slider-container {
+            position: relative;
+            margin: 10px 0;
+        }
+
+        .timeline-slider {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: #e9ecef;
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+            cursor: grab;
+            transition: all 0.2s ease;
+        }
+
+        .timeline-slider:hover {
+            background: #dee2e6;
+        }
+
+        .timeline-slider:active {
+            cursor: grabbing;
+        }
+
+        .timeline-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #3498db;
+            cursor: pointer;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+
+        .timeline-slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #3498db;
+            cursor: pointer;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+
+        .timeline-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            font-size: 12px;
+            color: #7f8c8d;
+        }
+
+        .timeline-tick {
+            position: relative;
+            text-align: center;
+            min-width: 30px;
+        }
+
+        .date-slider-container {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border: 2px solid #e9ecef;
+        }
+
+        .date-slider-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .date-slider-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .current-date-display {
+            font-size: 16px;
+            color: #e74c3c;
+            font-weight: bold;
+        }
+
+        .date-slider {
+            width: 100%;
+            height: 6px;
+            border-radius: 4px;
+            background: #e9ecef;
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .date-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #e74c3c;
+            cursor: pointer;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .date-slider::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #e74c3c;
+            cursor: pointer;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .date-slider-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+            font-size: 11px;
+            color: #7f8c8d;
+        }
+
+
+
+        .parking-areas {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .parking-area {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 10px;
+            border: 2px solid #e9ecef;
+        }
+
+        .area-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            text-align: center;
+            padding: 6px;
+            background: #fff;
+            border-radius: 5px;
+            border: 1px solid #dee2e6;
+        }
+
+        .parking-spots {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 6px;
+            justify-items: center;
+        }
+
+        .parking-spot {
+            width: 80px;
+            height: 50px;
+            background: #95a5a6;
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 8px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+            padding: 2px;
+            position: relative;
+        }
+
+        .spot-number {
+            font-size: 10px;
+            font-weight: 800;
+            margin-bottom: 1px;
+        }
+
+        .spot-plate {
+            font-size: 8px;
+            opacity: 0.9;
+            word-wrap: break-word;
+            text-align: center;
+            line-height: 1;
+        }
+
+        .spot-count {
+            font-size: 0.7em;
+            font-weight: normal;
+            color: #7f8c8d;
+        }
+
+        .parking-spot.occupied {
+            background: #27ae60;
+            box-shadow: 0 2px 6px rgba(39, 174, 96, 0.3);
+        }
+
+        .parking-spot.empty {
+            background: #95a5a6;
+        }
+
+        .parking-spot:hover {
+            transform: scale(1.05);
+            border-color: #3498db;
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 15px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .stat-card {
+            background: #fff;
+            padding: 10px;
+            border-radius: 6px;
+            border: 2px solid #e9ecef;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 20px;
+            font-weight: bold;
+            color: #3498db;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #7f8c8d;
+            margin-top: 3px;
+        }
+
+        .event-log {
+            max-height: 150px;
+            overflow-y: auto;
+            background: #f8f9fa;
+            padding: 8px;
+            border-radius: 6px;
+            margin-top: 15px;
+            font-family: monospace;
+            font-size: 11px;
+        }
+
+        .log-entry {
+            padding: 3px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .log-entry.enter {
+            color: #27ae60;
+        }
+
+        .log-entry.exit {
+            color: #e74c3c;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 18px;
+            color: #7f8c8d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚗 Parking Spots Playback Visualizer</h1>
+            <p>Real-time parking occupancy visualization with entry/exit events</p>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <input type="file" id="fileInput" accept=".json" style="display: none;">
+                <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+                    📁 Load Parking Data
+                </button>
+            </div>
+            
+            <div class="control-group">
+                <button class="btn btn-success" id="playBtn" onclick="playPause()" disabled>▶️ Play</button>
+                <button class="btn btn-warning" onclick="resetVisualization()" disabled id="resetBtn">🔄 Reset</button>
+            </div>
+            
+            <div class="speed-control">
+                <label>Speed:</label>
+                <input type="range" id="speedSlider" class="speed-slider" min="1" max="10" value="5">
+                <span id="speedLabel">5x</span>
+            </div>
+            
+            <div class="date-filter">
+                <label>From:</label>
+                <div class="date-picker-wrapper">
+                    <input type="text" id="fromDate" class="date-input" placeholder="DD/MM/YYYY" readonly>
+                    <input type="date" id="fromDatePicker" class="hidden-date-picker">
+                </div>
+                <label>To:</label>
+                <div class="date-picker-wrapper">
+                    <input type="text" id="toDate" class="date-input" placeholder="DD/MM/YYYY" readonly>
+                    <input type="date" id="toDatePicker" class="hidden-date-picker">
+                </div>
+                <button class="btn btn-primary" onclick="applyDateFilter()">📅 Apply Filter</button>
+                <button class="btn btn-danger" onclick="clearDateFilter()">❌ Clear Filter</button>
+            </div>
+        </div>
+
+        <div class="filter-info" id="filterInfo" style="display: none;">
+            <span id="filterStatus">No date filter applied</span>
+        </div>
+
+        <div class="date-slider-container" id="dateSliderContainer" style="display: none;">
+            <div class="date-slider-header">
+                <div class="date-slider-title">📅 Date Navigation</div>
+                <div class="current-date-display" id="currentDateSlider">--</div>
+            </div>
+            
+            <div>
+                <input type="range" id="dateSlider" class="date-slider" 
+                       min="0" max="100" value="0" step="1">
+            </div>
+            
+            <div class="date-slider-labels" id="dateSliderLabels">
+                <span id="minDateLabel">--</span>
+                <span id="maxDateLabel">--</span>
+            </div>
+        </div>
+
+        <div class="timeline-container" id="timelineContainer" style="display: none;">
+            <div class="timeline-header">
+                <div class="timeline-title">🕒 Time Navigation</div>
+                <div class="current-time" id="currentTime">00:00</div>
+            </div>
+            
+            <div class="timeline-slider-container">
+                <input type="range" id="timelineSlider" class="timeline-slider" 
+                       min="0" max="1440" value="0" step="1"
+                       title="Drag to navigate to specific time of day">
+            </div>
+            
+            <div class="timeline-labels">
+                <div class="timeline-tick">00:00</div>
+                <div class="timeline-tick">03:00</div>
+                <div class="timeline-tick">06:00</div>
+                <div class="timeline-tick">09:00</div>
+                <div class="timeline-tick">12:00</div>
+                <div class="timeline-tick">15:00</div>
+                <div class="timeline-tick">18:00</div>
+                <div class="timeline-tick">21:00</div>
+                <div class="timeline-tick">24:00</div>
+            </div>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number" id="totalSpots">0</div>
+                <div class="stat-label">Total Spots</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="dailyEntries">0</div>
+                <div class="stat-label">Cars Entries for Day</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="currentDayDisplay">-</div>
+                <div class="stat-label">Current Day</div>
+            </div>
+        </div>
+
+        <div class="parking-areas" id="parkingAreas">
+            <div class="loading">Please load merged_parking_data.json to visualize parking spots</div>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color" style="background: #95a5a6;"></div>
+                <span>Empty Spot</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #27ae60;"></div>
+                <span>Occupied Spot</span>
+            </div>
+        </div>
+
+        <div class="event-log" id="eventLog">
+            <div class="log-entry">Event log will appear here during playback...</div>
+        </div>
+    </div>
+
+    <script>
+        let parkingData = null;
+        let originalParkingData = null; // Store original data before filtering
+        let isPlaying = false;
+        let currentEventIndex = 0;
+        let playbackInterval = null;
+        let spotStates = {}; // Track which spots are occupied
+        let areaSpotCounts = {}; // Track spots per area
+        let currentDate = null; // Track current date during playback
+        let dailyCars = new Set(); // Track cars that entered today
+        let dateFilter = { from: null, to: null }; // Date filter range
+        let currentTimeMinutes = 0; // Current time in minutes from 00:00
+        let dayEvents = []; // Events for current day
+        let timelineUpdateEnabled = true; // Control timeline updates during playback
+        let dateRange = { min: null, max: null, dates: [] }; // Available date range
+        let currentDateIndex = 0; // Current position in date array
+        let dateSliderUpdateEnabled = true; // Control date slider updates during playback
+
+        // Load and initialize data
+        document.getElementById('fileInput').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        originalParkingData = JSON.parse(e.target.result);
+                        parkingData = originalParkingData;
+                        initializeVisualization();
+                    } catch (error) {
+                        alert('Error parsing JSON file: ' + error.message);
+                    }
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        function initializeVisualization() {
+            if (!parkingData || !parkingData.cars || !parkingData.records) {
+                alert('Invalid parking data format');
+                return;
+            }
+
+            // Reset state
+            currentEventIndex = 0;
+            spotStates = {};
+            areaSpotCounts = {};
+            
+            // Group cars by parking area
+            const areaGroups = {};
+            Object.entries(parkingData.cars).forEach(([plate, carInfo]) => {
+                // Handle empty or null locations properly
+                let location = carInfo.location;
+                if (!location || location.trim() === '') {
+                    location = ''; // Empty string for cars without assigned spots
+                } else {
+                    location = location.trim();
+                }
+                
+                if (!areaGroups[location]) {
+                    areaGroups[location] = [];
+                }
+                areaGroups[location].push({
+                    plate: plate,
+                    name: carInfo.name,
+                    active: carInfo.active_employee
+                });
+            });
+            
+            // Add empty spots from locations section that don't have cars assigned
+            if (parkingData.locations) {
+                Object.entries(parkingData.locations).forEach(([areaKey, areaInfo]) => {
+                    if (areaInfo.spots && Array.isArray(areaInfo.spots)) {
+                        areaInfo.spots.forEach(spotId => {
+                            // Create a synthetic location string for this spot
+                            const syntheticLocation = `${spotId} - ${areaInfo.name.toUpperCase()}`;
+                            
+                            // Only add if no cars are already assigned to this location
+                            if (!areaGroups[syntheticLocation]) {
+                                areaGroups[syntheticLocation] = []; // Empty array means no cars assigned
+                            }
+                        });
+                    }
+                });
+            }
+
+            // Generate parking areas visualization
+            generateParkingAreas(areaGroups);
+            
+            // Sort records by timestamp
+            parkingData.records.sort((a, b) => a.timestamp - b.timestamp);
+            
+            // Initialize date range and slider
+            initializeDateRange();
+            
+            // Enable controls
+            document.getElementById('playBtn').disabled = false;
+            document.getElementById('resetBtn').disabled = false;
+            
+            // Update stats
+            updateStats();
+            
+            console.log('Visualization initialized with', Object.keys(parkingData.cars).length, 'cars and', parkingData.records.length, 'events');
+        }
+
+        function generateParkingAreas(areaGroups) {
+            const areasContainer = document.getElementById('parkingAreas');
+            areasContainer.innerHTML = '';
+            
+            // Define the main parking areas plus zones and guests
+            const parkingAreas = {
+                'МАЛЪК АНГЛИЙСКИ ДВОР': {
+                    title: '🏛️ Малък Английски Двор',
+                    spots: new Map()
+                },
+                'ПОКРИТ ПАРКИНГ': {
+                    title: '🏢 Покрит Паркинг', 
+                    spots: new Map()
+                },
+                'ПОДЗЕМЕН': {
+                    title: '🚇 Подземен Паркинг',
+                    spots: new Map()
+                },
+                'ГОЛЯМ АНГЛИЙСКИ ДВОР': {
+                    title: '🏛️ Голям Английски Двор',
+                    spots: new Map()
+                },
+                'ДЕПО': {
+                    title: '🚛 Депо',
+                    spots: new Map()
+                },
+                'ПАРКИНГ ПЕЧАТНИЦА': {
+                    title: '🖨️ Паркинг Печатница',
+                    spots: new Map()
+                },
+                'ЗОНИ': {
+                    title: '🏢 Специални Зони',
+                    spots: new Map()
+                },
+                'ГОСТИ': {
+                    title: '👥 Гости / Неизвестни',
+                    spots: new Map()
+                }
+            };
+            
+            // Group cars by actual parking spots (not individual cars)
+            Object.entries(areaGroups).forEach(([originalLocation, cars]) => {
+                let targetArea = 'ГОСТИ'; // Default for unknown/empty locations
+                
+                // Handle empty locations
+                if (!originalLocation || originalLocation.trim() === '') {
+                    targetArea = 'ГОСТИ';
+                } else {
+                    // Normalize location for better matching
+                    const normalizedLocation = originalLocation.toUpperCase().trim();
+                    
+                    if (normalizedLocation.includes('МАЛЪК АНГЛИЙСКИ ДВОР') || normalizedLocation.includes('МАЛЪК АНГЛИСКИ ДВОР')) {
+                        targetArea = 'МАЛЪК АНГЛИЙСКИ ДВОР';
+                    } else if (normalizedLocation.includes('ПОКРИТ ПАРКИНГ')) {
+                        targetArea = 'ПОКРИТ ПАРКИНГ';
+                    } else if (normalizedLocation.includes('ПОДЗЕМЕН')) {
+                        targetArea = 'ПОДЗЕМЕН';
+                    } else if (normalizedLocation.includes('ГОЛЯМ АНГЛИЙСКИ ДВОР')) {
+                        targetArea = 'ГОЛЯМ АНГЛИЙСКИ ДВОР';
+                    } else if (normalizedLocation.includes('ДЕПО')) {
+                        targetArea = 'ДЕПО';
+                    } else if (normalizedLocation.includes('ПАРКИНГ ПЕЧАТНИЦА')) {
+                        targetArea = 'ПАРКИНГ ПЕЧАТНИЦА';
+                    } else if (normalizedLocation.includes('ЗОНА') && !normalizedLocation.includes('ГОЛЯМ') && !normalizedLocation.includes('МАЛЪК')) {
+                        // Handle standalone zone locations like "В1 - НИСКА ЗОНА"
+                        targetArea = 'ЗОНИ';
+                    }
+                }
+                
+                // Extract spot number from location - handle both А/В and numbers
+                const spotNumber = originalLocation ? originalLocation.match(/[А-ЯA-ZВ]\d+/) : null;
+                const spotId = spotNumber ? spotNumber[0] : `GUEST-${Math.random().toString(36).substr(2, 9)}`;
+                
+                // Group multiple cars by the same physical spot
+                if (!parkingAreas[targetArea].spots.has(spotId)) {
+                    parkingAreas[targetArea].spots.set(spotId, {
+                        spotNumber: spotId,
+                        originalLocation: originalLocation,
+                        cars: [],
+                        currentCar: null // Track which car is currently in the spot
+                    });
+                }
+                
+                // Add all cars that can use this spot (if any)
+                cars.forEach(car => {
+                    parkingAreas[targetArea].spots.get(spotId).cars.push(car);
+                    // Initialize spot states for all cars
+                    spotStates[car.plate] = false;
+                });
+                
+                // Debug logging for area assignment
+                if (targetArea === 'ГОСТИ' && originalLocation && originalLocation.trim() !== '') {
+                    console.warn(`Location not categorized: "${originalLocation}" -> assigned to ГОСТИ`);
+                }
+                
+                // Debug logging for empty spots
+                if (cars.length === 0) {
+                    console.log(`Empty spot found: "${originalLocation}" -> ${targetArea} (${spotId})`);
+                }
+            });
+            
+            let totalSpots = 0;
+            
+            // Debug: Log area statistics
+            console.log('Parking Area Distribution:');
+            Object.entries(parkingAreas).forEach(([areaKey, areaData]) => {
+                if (areaData.spots.size > 0) {
+                    console.log(`${areaKey}: ${areaData.spots.size} spots`);
+                }
+            });
+            
+            totalSpots = 0;
+            
+            // Generate HTML for each parking area
+            Object.entries(parkingAreas).forEach(([areaKey, areaData]) => {
+                if (areaData.spots.size === 0) return; // Skip empty areas
+                
+                const areaDiv = document.createElement('div');
+                areaDiv.className = 'parking-area';
+                
+                const titleDiv = document.createElement('div');
+                titleDiv.className = 'area-title';
+                titleDiv.innerHTML = `${areaData.title} <span class="spot-count">(${areaData.spots.size} места)</span>`;
+                
+                const spotsDiv = document.createElement('div');
+                spotsDiv.className = 'parking-spots';
+                
+                // Sort spots by number for better organization
+                const sortedSpots = Array.from(areaData.spots.entries()).sort((a, b) => {
+                    const aNum = a[0].match(/\d+/) ? parseInt(a[0].match(/\d+/)[0]) : 999;
+                    const bNum = b[0].match(/\d+/) ? parseInt(b[0].match(/\d+/)[0]) : 999;
+                    return aNum - bNum;
+                });
+                
+                // Create one visual spot per physical parking spot
+                sortedSpots.forEach(([spotId, spotData]) => {
+                    const spotDiv = document.createElement('div');
+                    spotDiv.className = 'parking-spot empty';
+                    spotDiv.id = `physical-spot-${spotId}`;
+                    
+                    // Create tooltip with all possible cars for this spot
+                    const carNames = spotData.cars.length > 0 
+                        ? spotData.cars.map(car => `${car.name} (${car.plate})`).join('\n')
+                        : 'Няма закрепени коли за това място';
+                        
+                    const tooltipText = `Място: ${spotId}\nЛокация: ${spotData.originalLocation || 'Неизвестна'}\n\n${spotData.cars.length > 0 ? 'Възможни коли:' : 'Статус:'}\n${carNames}`;
+                    spotDiv.title = tooltipText;
+                    
+                    spotDiv.innerHTML = `<div class="spot-number">${spotData.spotNumber}</div><div class="spot-plate">Свободно</div>`;
+                    
+                    // Store reference to spot data
+                    spotDiv.spotData = spotData;
+                    
+                    spotsDiv.appendChild(spotDiv);
+                    totalSpots++;
+                });
+                
+                areaSpotCounts[areaKey] = areaData.spots.size;
+                
+                areaDiv.appendChild(titleDiv);
+                areaDiv.appendChild(spotsDiv);
+                areasContainer.appendChild(areaDiv);
+            });
+            
+            document.getElementById('totalSpots').textContent = totalSpots;
+        }
+
+
+
+        function playPause() {
+            if (isPlaying) {
+                pausePlayback();
+            } else {
+                startPlayback();
+            }
+        }
+
+        function startPlayback() {
+            if (!parkingData || currentEventIndex >= parkingData.records.length) {
+                return;
+            }
+            
+            isPlaying = true;
+            document.getElementById('playBtn').textContent = '⏸️ Pause';
+            
+            const speed = document.getElementById('speedSlider').value;
+            const intervalMs = Math.max(50, 1000 / speed); // Minimum 50ms interval
+            
+            playbackInterval = setInterval(processNextEvent, intervalMs);
+        }
+
+        function pausePlayback() {
+            isPlaying = false;
+            document.getElementById('playBtn').textContent = '▶️ Play';
+            
+            if (playbackInterval) {
+                clearInterval(playbackInterval);
+                playbackInterval = null;
+            }
+        }
+
+
+
+        function processNextEvent() {
+            if (!parkingData || currentEventIndex >= parkingData.records.length) {
+                pausePlayback();
+                return;
+            }
+            
+            const event = parkingData.records[currentEventIndex];
+            const plate = event.plate;
+            const direction = event.direction;
+            
+            // Find the car's assigned location
+            const carData = parkingData.cars[plate];
+            if (!carData) {
+                console.warn(`Car ${plate} not found in registry`);
+                currentEventIndex++;
+                return;
+            }
+            
+            const location = carData.location || '';
+            const spotNumber = location.match(/[А-ЯA-Z]\d+/);
+            const spotId = spotNumber ? spotNumber[0] : `GUEST-${plate}`;
+            
+            // Find the physical spot element
+            const physicalSpotElement = document.getElementById(`physical-spot-${spotId}`);
+            
+            if (physicalSpotElement) {
+                if (direction === 'enter') {
+                    // Car enters the spot
+                    physicalSpotElement.classList.remove('empty');
+                    physicalSpotElement.classList.add('occupied');
+                    physicalSpotElement.spotData.currentCar = carData;
+                    
+                    // Update the display to show which car is parked
+                    const plateDisplay = physicalSpotElement.querySelector('.spot-plate');
+                    plateDisplay.textContent = plate;
+                    
+                    // Update tooltip
+                    physicalSpotElement.title = `Място: ${spotId}\nТекуща кола: ${carData.name} (${plate})\nЛокация: ${location || 'Неизвестна'}`;
+                    
+                    spotStates[plate] = true;
+                    
+                } else if (direction === 'exit') {
+                    // Car exits the spot
+                    physicalSpotElement.classList.remove('occupied');
+                    physicalSpotElement.classList.add('empty');
+                    physicalSpotElement.spotData.currentCar = null;
+                    
+                    // Update the display to show spot is free
+                    const plateDisplay = physicalSpotElement.querySelector('.spot-plate');
+                    plateDisplay.textContent = 'Свободно';
+                    
+                    // Reset tooltip to show all possible cars
+                    const allCars = physicalSpotElement.spotData.cars.map(car => `${car.name} (${car.plate})`).join('\n');
+                    physicalSpotElement.title = `Място: ${spotId}\nЛокация: ${location || 'Неизвестна'}\n\nВъзможни коли:\n${allCars}`;
+                    
+                    spotStates[plate] = false;
+                }
+            } else {
+                console.warn(`Physical spot ${spotId} not found for car ${plate}`);
+            }
+            
+            // Add to event log
+            addLogEntry(event);
+            
+            // Update stats
+            updateStats();
+            
+            // Update timeline and date slider
+            updateTimeline();
+            updateDateSlider();
+            
+            currentEventIndex++;
+            
+            // Check if playback is complete
+            if (currentEventIndex >= parkingData.records.length) {
+                pausePlayback();
+                document.getElementById('playBtn').textContent = '✅ Complete';
+            }
+        }
+
+        function addLogEntry(event) {
+            const logContainer = document.getElementById('eventLog');
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry ${event.direction}`;
+            logEntry.textContent = `${event.datetime} - ${event.plate} ${event.direction.toUpperCase()}`;
+            
+            logContainer.insertBefore(logEntry, logContainer.firstChild);
+            
+            // Keep only last 50 entries
+            while (logContainer.children.length > 50) {
+                logContainer.removeChild(logContainer.lastChild);
+            }
+        }
+
+        function updateStats() {
+            if (!parkingData) return;
+            
+            const totalCount = Object.keys(spotStates).length;
+            
+            // Calculate entries for current day
+            let dailyEntriesCount = 0;
+            let displayDate = '-';
+            
+            if (parkingData.records && currentEventIndex > 0) {
+                const currentRecord = parkingData.records[currentEventIndex - 1];
+                if (currentRecord) {
+                    const date = currentRecord.datetime.split(' ')[0];
+                    displayDate = convertDateToDMY(date);
+                    
+                    // Count all entries for this date up to current point
+                    for (let i = 0; i < currentEventIndex; i++) {
+                        const record = parkingData.records[i];
+                        const recordDate = record.datetime.split(' ')[0];
+                        
+                        if (recordDate === date && record.direction === 'enter') {
+                            dailyEntriesCount++;
+                        }
+                    }
+                }
+            }
+            
+            document.getElementById('totalSpots').textContent = totalCount;
+            document.getElementById('dailyEntries').textContent = dailyEntriesCount;
+            document.getElementById('currentDayDisplay').textContent = displayDate;
+            
+            // Update current day info
+            updateCurrentDayInfo();
+        }
+
+        function updateCurrentDayInfo() {
+            if (!parkingData || !parkingData.records || currentEventIndex >= parkingData.records.length) {
+                return;
+            }
+            
+            const currentRecord = parkingData.records[currentEventIndex - 1];
+            if (currentRecord) {
+                const date = currentRecord.datetime.split(' ')[0];
+                currentDate = date;
+                
+                // Count entries for current date
+                dailyCars.clear();
+                
+                // Count all entries up to current point for this date
+                for (let i = 0; i < currentEventIndex; i++) {
+                    const record = parkingData.records[i];
+                    const recordDate = record.datetime.split(' ')[0];
+                    
+                    if (recordDate === date && record.direction === 'enter') {
+                        dailyCars.add(record.plate);
+                    }
+                }
+            }
+        }
+
+        function resetVisualization() {
+            pausePlayback();
+            currentEventIndex = 0;
+            
+            // Reset date tracking
+            currentDate = null;
+            dailyCars.clear();
+            
+            // Reset all car states
+            Object.keys(spotStates).forEach(plate => {
+                spotStates[plate] = false;
+            });
+            
+            // Reset all physical spots to empty
+            document.querySelectorAll('.parking-spot').forEach(spotElement => {
+                spotElement.classList.remove('occupied');
+                spotElement.classList.add('empty');
+                
+                // Reset display
+                const plateDisplay = spotElement.querySelector('.spot-plate');
+                if (plateDisplay) {
+                    plateDisplay.textContent = 'Свободно';
+                }
+                
+                // Reset current car data
+                if (spotElement.spotData) {
+                    spotElement.spotData.currentCar = null;
+                    
+                    // Reset tooltip to show all possible cars
+                    const spotId = spotElement.spotData.spotNumber;
+                    const location = spotElement.spotData.originalLocation;
+                    const allCars = spotElement.spotData.cars.map(car => `${car.name} (${car.plate})`).join('\n');
+                    spotElement.title = `Място: ${spotId}\nЛокация: ${location || 'Неизвестна'}\n\nВъзможни коли:\n${allCars}`;
+                }
+            });
+            
+            // Clear event log
+            document.getElementById('eventLog').innerHTML = '<div class="log-entry">Event log cleared - ready for playback</div>';
+            
+            // Reset play button
+            document.getElementById('playBtn').textContent = '▶️ Play';
+            
+            // Reset timeline
+            document.getElementById('timelineContainer').style.display = 'none';
+            document.getElementById('timelineSlider').value = 0;
+            document.getElementById('currentTime').textContent = '00:00';
+            currentTimeMinutes = 0;
+            timelineUpdateEnabled = true;
+            
+            // Reset date slider
+            if (dateRange.dates.length > 0) {
+                document.getElementById('dateSlider').value = 0;
+                document.getElementById('currentDateSlider').textContent = convertDateToDMY(dateRange.dates[0]);
+                currentDateIndex = 0;
+            }
+            dateSliderUpdateEnabled = true;
+            
+            // Update stats
+            updateStats();
+        }
+
+        // Speed control
+        document.getElementById('speedSlider').addEventListener('input', function() {
+            const speed = this.value;
+            document.getElementById('speedLabel').textContent = speed + 'x';
+            
+            // If playing, restart with new speed
+            if (isPlaying) {
+                pausePlayback();
+                startPlayback();
+            }
+        });
+
+        // Date filtering functions
+        function parseDateDMY(dateString) {
+            // Parse DD/MM/YYYY format
+            if (!dateString || !dateString.includes('/')) return null;
+            const parts = dateString.split('/');
+            if (parts.length !== 3) return null;
+            
+            const day = parseInt(parts[0]);
+            const month = parseInt(parts[1]) - 1; // JavaScript months are 0-based
+            const year = parseInt(parts[2]);
+            
+            if (isNaN(day) || isNaN(month) || isNaN(year)) return null;
+            if (day < 1 || day > 31 || month < 0 || month > 11) return null;
+            
+            return new Date(year, month, day);
+        }
+
+        function formatDateDMY(date) {
+            // Format Date object to DD/MM/YYYY
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
+        }
+
+        function parseRecordDate(dateTimeString) {
+            // Parse the datetime string from records (assuming format like "2024-01-15 10:30:00")
+            const datePart = dateTimeString.split(' ')[0];
+            const [year, month, day] = datePart.split('-').map(Number);
+            return new Date(year, month - 1, day);
+        }
+
+        function applyDateFilter() {
+            if (!originalParkingData) {
+                alert('Please load parking data first');
+                return;
+            }
+
+            const fromDateStr = document.getElementById('fromDate').value.trim();
+            const toDateStr = document.getElementById('toDate').value.trim();
+
+            // Validate date inputs
+            let fromDate = null;
+            let toDate = null;
+
+            if (fromDateStr) {
+                fromDate = parseDateDMY(fromDateStr);
+                if (!fromDate) {
+                    alert('Invalid "From" date format. Please select a date using the calendar');
+                    return;
+                }
+            }
+
+            if (toDateStr) {
+                toDate = parseDateDMY(toDateStr);
+                if (!toDate) {
+                    alert('Invalid "To" date format. Please select a date using the calendar');
+                    return;
+                }
+            }
+
+            // Validate date range
+            if (fromDate && toDate && fromDate > toDate) {
+                alert('From date cannot be after To date');
+                return;
+            }
+
+            // Store filter settings
+            dateFilter.from = fromDate;
+            dateFilter.to = toDate;
+
+            // Filter the records
+            let filteredRecords = originalParkingData.records;
+
+            if (fromDate || toDate) {
+                filteredRecords = originalParkingData.records.filter(record => {
+                    const recordDate = parseRecordDate(record.datetime);
+                    
+                    if (fromDate && recordDate < fromDate) return false;
+                    if (toDate && recordDate > toDate) return false;
+                    
+                    return true;
+                });
+            }
+
+            // Create filtered parking data
+            parkingData = {
+                cars: originalParkingData.cars,
+                records: filteredRecords
+            };
+
+            // Update filter info display
+            updateFilterInfo();
+
+            // Reinitialize visualization with filtered data
+            initializeVisualization();
+
+            console.log(`Applied date filter: ${filteredRecords.length} records out of ${originalParkingData.records.length}`);
+        }
+
+        function clearDateFilter() {
+            // Clear input fields
+            document.getElementById('fromDate').value = '';
+            document.getElementById('toDate').value = '';
+            document.getElementById('fromDatePicker').value = '';
+            document.getElementById('toDatePicker').value = '';
+
+            // Reset filter
+            dateFilter.from = null;
+            dateFilter.to = null;
+
+            // Restore original data
+            if (originalParkingData) {
+                parkingData = originalParkingData;
+                initializeVisualization();
+            }
+
+            // Update filter info display
+            updateFilterInfo();
+
+            console.log('Date filter cleared');
+        }
+
+        function updateFilterInfo() {
+            const filterInfoDiv = document.getElementById('filterInfo');
+            const filterStatusSpan = document.getElementById('filterStatus');
+
+            if (dateFilter.from || dateFilter.to) {
+                let statusText = 'Date filter active: ';
+                
+                if (dateFilter.from && dateFilter.to) {
+                    statusText += `${formatDateDMY(dateFilter.from)} to ${formatDateDMY(dateFilter.to)}`;
+                } else if (dateFilter.from) {
+                    statusText += `From ${formatDateDMY(dateFilter.from)}`;
+                } else if (dateFilter.to) {
+                    statusText += `Until ${formatDateDMY(dateFilter.to)}`;
+                }
+
+                if (parkingData && originalParkingData) {
+                    statusText += ` (${parkingData.records.length} of ${originalParkingData.records.length} records)`;
+                }
+
+                filterStatusSpan.textContent = statusText;
+                filterInfoDiv.style.display = 'block';
+            } else {
+                filterStatusSpan.textContent = 'No date filter applied';
+                filterInfoDiv.style.display = 'none';
+            }
+        }
+
+
+
+        // Initialize speed label
+        document.getElementById('speedLabel').textContent = document.getElementById('speedSlider').value + 'x';
+
+        // Date conversion utilities
+        function convertDateToISO(dmyDate) {
+            // Convert DD/MM/YYYY to YYYY-MM-DD for HTML5 date input
+            if (!dmyDate) return '';
+            const parts = dmyDate.split('/');
+            if (parts.length !== 3) return '';
+            return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+        }
+
+        function convertISOToDateDMY(isoDate) {
+            // Convert YYYY-MM-DD to DD/MM/YYYY
+            if (!isoDate) return '';
+            const parts = isoDate.split('-');
+            if (parts.length !== 3) return '';
+            return `${parts[2]}/${parts[1]}/${parts[0]}`;
+        }
+
+        // Calendar picker event handlers
+        function setupDatePickers() {
+            const fromDatePicker = document.getElementById('fromDatePicker');
+            const toDatePicker = document.getElementById('toDatePicker');
+            const fromDateDisplay = document.getElementById('fromDate');
+            const toDateDisplay = document.getElementById('toDate');
+
+            // From date picker
+            fromDatePicker.addEventListener('change', function() {
+                if (this.value) {
+                    fromDateDisplay.value = convertISOToDateDMY(this.value);
+                } else {
+                    fromDateDisplay.value = '';
+                }
+            });
+
+            // To date picker
+            toDatePicker.addEventListener('change', function() {
+                if (this.value) {
+                    toDateDisplay.value = convertISOToDateDMY(this.value);
+                } else {
+                    toDateDisplay.value = '';
+                }
+            });
+
+            // Click on display field should open calendar
+            fromDateDisplay.addEventListener('click', function() {
+                // Set current value in picker if available
+                if (this.value) {
+                    fromDatePicker.value = convertDateToISO(this.value);
+                }
+                // Try to use showPicker if available, otherwise focus to open calendar
+                if (fromDatePicker.showPicker) {
+                    fromDatePicker.showPicker();
+                } else {
+                    fromDatePicker.focus();
+                    fromDatePicker.click();
+                }
+            });
+
+            toDateDisplay.addEventListener('click', function() {
+                // Set current value in picker if available
+                if (this.value) {
+                    toDatePicker.value = convertDateToISO(this.value);
+                }
+                // Try to use showPicker if available, otherwise focus to open calendar
+                if (toDatePicker.showPicker) {
+                    toDatePicker.showPicker();
+                } else {
+                    toDatePicker.focus();
+                    toDatePicker.click();
+                }
+            });
+
+            // Handle keyboard navigation
+            fromDateDisplay.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    if (this.value) {
+                        fromDatePicker.value = convertDateToISO(this.value);
+                    }
+                    if (fromDatePicker.showPicker) {
+                        fromDatePicker.showPicker();
+                    } else {
+                        fromDatePicker.focus();
+                        fromDatePicker.click();
+                    }
+                } else if (e.key === 'Tab') {
+                    // Allow normal tab navigation
+                    return;
+                } else {
+                    // Prevent typing in readonly field
+                    e.preventDefault();
+                }
+            });
+
+            toDateDisplay.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    if (this.value) {
+                        toDatePicker.value = convertDateToISO(this.value);
+                    }
+                    if (toDatePicker.showPicker) {
+                        toDatePicker.showPicker();
+                    } else {
+                        toDatePicker.focus();
+                        toDatePicker.click();
+                    }
+                } else if (e.key === 'Tab') {
+                    // Allow normal tab navigation
+                    return;
+                } else {
+                    // Prevent typing in readonly field
+                    e.preventDefault();
+                }
+            });
+        }
+
+        // Initialize date pickers when page loads
+        setupDatePickers();
+
+        // Timeline functions
+        function extractTimeFromDateTime(dateTimeString) {
+            // Extract time from "YYYY-MM-DD HH:MM:SS" format
+            const timePart = dateTimeString.split(' ')[1];
+            if (!timePart) return 0;
+            
+            const [hours, minutes] = timePart.split(':').map(Number);
+            return (hours * 60) + (minutes || 0);
+        }
+
+        function formatMinutesToTime(minutes) {
+            const hours = Math.floor(minutes / 60);
+            const mins = minutes % 60;
+            return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+        }
+
+        function convertDateToDMY(dateString) {
+            // Convert YYYY-MM-DD to DD-MM-YYYY format
+            if (!dateString) return dateString;
+            const parts = dateString.split('-');
+            if (parts.length !== 3) return dateString;
+            return `${parts[2]}-${parts[1]}-${parts[0]}`;
+        }
+
+        function updateTimeline() {
+            if (!parkingData || !parkingData.records || currentEventIndex >= parkingData.records.length) {
+                return;
+            }
+
+            const currentRecord = parkingData.records[currentEventIndex - 1];
+            if (!currentRecord) return;
+
+            // Get current date and time
+            const recordDate = currentRecord.datetime.split(' ')[0];
+            const formattedDate = convertDateToDMY(recordDate);
+            currentTimeMinutes = extractTimeFromDateTime(currentRecord.datetime);
+
+            // Update timeline display
+            document.getElementById('currentTime').textContent = formatMinutesToTime(currentTimeMinutes);
+            
+            // Update slider position if timeline updates are enabled
+            if (timelineUpdateEnabled) {
+                document.getElementById('timelineSlider').value = currentTimeMinutes;
+            }
+
+            // Show timeline if not visible
+            const timelineContainer = document.getElementById('timelineContainer');
+            if (timelineContainer.style.display === 'none') {
+                timelineContainer.style.display = 'block';
+            }
+        }
+
+        function setupTimelineSlider() {
+            const timelineSlider = document.getElementById('timelineSlider');
+            
+            timelineSlider.addEventListener('input', function() {
+                const selectedMinutes = parseInt(this.value);
+                const timeStr = formatMinutesToTime(selectedMinutes);
+                document.getElementById('currentTime').textContent = timeStr;
+                
+                // Update tooltip with current time
+                this.title = `Navigate to ${timeStr} - Drag to any time of day`;
+            });
+
+            timelineSlider.addEventListener('change', function() {
+                // Allow seeking to time whether playing or paused
+                seekToTime(parseInt(this.value));
+            });
+            
+            // Add mouse events for better interaction feedback
+            timelineSlider.addEventListener('mousedown', function() {
+                this.style.cursor = 'grabbing';
+            });
+            
+            timelineSlider.addEventListener('mouseup', function() {
+                this.style.cursor = 'grab';
+            });
+        }
+
+        function seekToTime(targetMinutes) {
+            if (!parkingData || !parkingData.records) return;
+
+            // Pause playback during seek
+            const wasPlaying = isPlaying;
+            if (wasPlaying) {
+                pausePlayback();
+            }
+
+            // Find the closest event to the target time on current day
+            let targetEventIndex = 0;
+            let targetDate = null;
+            
+            // Get current date - either from current record or from date slider
+            const currentRecord = parkingData.records[currentEventIndex - 1];
+            if (currentRecord) {
+                targetDate = currentRecord.datetime.split(' ')[0];
+            } else if (dateRange.dates && dateRange.dates[currentDateIndex]) {
+                targetDate = dateRange.dates[currentDateIndex];
+            } else if (parkingData.records.length > 0) {
+                // Fallback to first date in records
+                targetDate = parkingData.records[0].datetime.split(' ')[0];
+            }
+            
+            if (targetDate) {
+                // Find events for the target day up to target time
+                for (let i = 0; i < parkingData.records.length; i++) {
+                    const record = parkingData.records[i];
+                    const recordDate = record.datetime.split(' ')[0];
+                    const recordTime = extractTimeFromDateTime(record.datetime);
+                    
+                    if (recordDate === targetDate && recordTime <= targetMinutes) {
+                        targetEventIndex = i + 1; // +1 because currentEventIndex represents next event to process
+                    } else if (recordDate > targetDate) {
+                        break; // Moved to next day
+                    }
+                }
+            }
+
+            // Reset visualization and replay up to target
+            resetVisualizationState();
+            
+            // Process events up to target
+            timelineUpdateEnabled = false; // Disable timeline updates during seek
+            
+            for (let i = 0; i < targetEventIndex && i < parkingData.records.length; i++) {
+                currentEventIndex = i;
+                processEventAtIndex(i);
+            }
+            
+            currentEventIndex = targetEventIndex;
+            timelineUpdateEnabled = true; // Re-enable timeline updates
+            
+            // Update displays
+            updateTimeline();
+            updateStats();
+            
+            // Resume playback if it was playing
+            if (wasPlaying) {
+                setTimeout(() => {
+                    startPlayback();
+                }, 100);
+            }
+        }
+
+        function processEventAtIndex(index) {
+            // Process a single event without timeline updates (for seeking)
+            if (!parkingData || index >= parkingData.records.length) return;
+            
+            const event = parkingData.records[index];
+            const plate = event.plate;
+            const direction = event.direction;
+            
+            // Find the car's assigned location
+            const carData = parkingData.cars[plate];
+            if (!carData) return;
+            
+            const location = carData.location || '';
+            const spotNumber = location.match(/[А-ЯA-Z]\d+/);
+            const spotId = spotNumber ? spotNumber[0] : `GUEST-${plate}`;
+            
+            // Find the physical spot element
+            const physicalSpotElement = document.getElementById(`physical-spot-${spotId}`);
+            
+            if (physicalSpotElement) {
+                if (direction === 'enter') {
+                    physicalSpotElement.classList.remove('empty');
+                    physicalSpotElement.classList.add('occupied');
+                    physicalSpotElement.spotData.currentCar = carData;
+                    
+                    const plateDisplay = physicalSpotElement.querySelector('.spot-plate');
+                    plateDisplay.textContent = plate;
+                    
+                    physicalSpotElement.title = `Място: ${spotId}\nТекуща кола: ${carData.name} (${plate})\nЛокация: ${location || 'Неизвестна'}`;
+                    spotStates[plate] = true;
+                    
+                } else if (direction === 'exit') {
+                    physicalSpotElement.classList.remove('occupied');
+                    physicalSpotElement.classList.add('empty');
+                    physicalSpotElement.spotData.currentCar = null;
+                    
+                    const plateDisplay = physicalSpotElement.querySelector('.spot-plate');
+                    plateDisplay.textContent = 'Свободно';
+                    
+                    const allCars = physicalSpotElement.spotData.cars.map(car => `${car.name} (${car.plate})`).join('\n');
+                    physicalSpotElement.title = `Място: ${spotId}\nЛокация: ${location || 'Неизвестна'}\n\nВъзможни коли:\n${allCars}`;
+                    spotStates[plate] = false;
+                }
+            }
+        }
+
+        function resetVisualizationState() {
+            // Reset all car states without affecting current event index
+            Object.keys(spotStates).forEach(plate => {
+                spotStates[plate] = false;
+            });
+            
+            // Reset all physical spots to empty
+            document.querySelectorAll('.parking-spot').forEach(spotElement => {
+                spotElement.classList.remove('occupied');
+                spotElement.classList.add('empty');
+                
+                const plateDisplay = spotElement.querySelector('.spot-plate');
+                if (plateDisplay) {
+                    plateDisplay.textContent = 'Свободно';
+                }
+                
+                if (spotElement.spotData) {
+                    spotElement.spotData.currentCar = null;
+                    
+                    const spotId = spotElement.spotData.spotNumber;
+                    const location = spotElement.spotData.originalLocation;
+                    const allCars = spotElement.spotData.cars.map(car => `${car.name} (${car.plate})`).join('\n');
+                    spotElement.title = `Място: ${spotId}\nЛокация: ${location || 'Неизвестна'}\n\nВъзможни коли:\n${allCars}`;
+                }
+            });
+        }
+
+        // Initialize timeline slider
+        setupTimelineSlider();
+
+        // Date slider functions
+        function initializeDateRange() {
+            if (!parkingData || !parkingData.records) return;
+
+            // Extract all unique dates from records
+            const uniqueDates = new Set();
+            parkingData.records.forEach(record => {
+                const date = record.datetime.split(' ')[0];
+                uniqueDates.add(date);
+            });
+
+            // Sort dates
+            dateRange.dates = Array.from(uniqueDates).sort();
+            dateRange.min = dateRange.dates[0];
+            dateRange.max = dateRange.dates[dateRange.dates.length - 1];
+
+            // Set up date slider
+            const dateSlider = document.getElementById('dateSlider');
+            dateSlider.min = 0;
+            dateSlider.max = dateRange.dates.length - 1;
+            dateSlider.value = 0;
+
+            // Update labels
+            document.getElementById('minDateLabel').textContent = convertDateToDMY(dateRange.min);
+            document.getElementById('maxDateLabel').textContent = convertDateToDMY(dateRange.max);
+            document.getElementById('currentDateSlider').textContent = convertDateToDMY(dateRange.dates[0]);
+
+            // Show date slider
+            document.getElementById('dateSliderContainer').style.display = 'block';
+
+            console.log(`Date range initialized: ${dateRange.min} to ${dateRange.max} (${dateRange.dates.length} days)`);
+        }
+
+        function updateDateSlider() {
+            if (!parkingData || !parkingData.records || currentEventIndex >= parkingData.records.length) {
+                return;
+            }
+
+            const currentRecord = parkingData.records[currentEventIndex - 1];
+            if (!currentRecord) return;
+
+            const currentRecordDate = currentRecord.datetime.split(' ')[0];
+            const dateIndex = dateRange.dates.indexOf(currentRecordDate);
+
+            if (dateIndex !== -1 && dateIndex !== currentDateIndex) {
+                currentDateIndex = dateIndex;
+                
+                // Update slider position if updates are enabled
+                if (dateSliderUpdateEnabled) {
+                    document.getElementById('dateSlider').value = currentDateIndex;
+                }
+                
+                // Update current date display
+                document.getElementById('currentDateSlider').textContent = convertDateToDMY(currentRecordDate);
+            }
+        }
+
+        function setupDateSlider() {
+            const dateSlider = document.getElementById('dateSlider');
+            
+            dateSlider.addEventListener('input', function() {
+                const selectedIndex = parseInt(this.value);
+                const selectedDate = dateRange.dates[selectedIndex];
+                if (selectedDate) {
+                    document.getElementById('currentDateSlider').textContent = convertDateToDMY(selectedDate);
+                }
+            });
+
+            dateSlider.addEventListener('change', function() {
+                const selectedIndex = parseInt(this.value);
+                seekToDate(selectedIndex);
+            });
+        }
+
+        function seekToDate(targetDateIndex) {
+            if (!parkingData || !parkingData.records || !dateRange.dates[targetDateIndex]) return;
+
+            const targetDate = dateRange.dates[targetDateIndex];
+            
+            // Pause playback during seek
+            const wasPlaying = isPlaying;
+            if (wasPlaying) {
+                pausePlayback();
+            }
+
+            // Find the first event of the target date
+            let targetEventIndex = 0;
+            for (let i = 0; i < parkingData.records.length; i++) {
+                const recordDate = parkingData.records[i].datetime.split(' ')[0];
+                if (recordDate === targetDate) {
+                    targetEventIndex = i;
+                    break;
+                } else if (recordDate > targetDate) {
+                    // If we've passed the target date and haven't found it, use current index
+                    targetEventIndex = i;
+                    break;
+                }
+            }
+
+            // Reset visualization and process events up to target date
+            resetVisualizationState();
+            
+            // Disable slider updates during seek
+            dateSliderUpdateEnabled = false;
+            timelineUpdateEnabled = false;
+            
+            // Process all events up to the start of target date
+            for (let i = 0; i < targetEventIndex && i < parkingData.records.length; i++) {
+                processEventAtIndex(i);
+            }
+            
+            currentEventIndex = targetEventIndex;
+            currentDateIndex = targetDateIndex;
+            
+            // Re-enable slider updates
+            dateSliderUpdateEnabled = true;
+            timelineUpdateEnabled = true;
+            
+            // Update displays
+            updateDateSlider();
+            updateTimeline();
+            updateStats();
+            
+            console.log(`Seeked to date: ${targetDate} (event index: ${targetEventIndex})`);
+
+            // Resume playback if it was playing
+            if (wasPlaying) {
+                setTimeout(() => {
+                    startPlayback();
+                }, 100);
+            }
+        }
+
+        // Initialize date slider
+        setupDateSlider();
+        
+        // Auto-load the merged parking data if it exists
+        window.addEventListener('load', function() {
+            fetch('./merged_parking_data.json')
+                .then(response => response.json())
+                .then(data => {
+                    originalParkingData = data;
+                    parkingData = data;
+                    initializeVisualization();
+                    console.log('Auto-loaded parking data');
+                })
+                .catch(error => {
+                    console.log('No auto-load: merged_parking_data.json not found or error loading');
+                });
+        });
+    </script>
+</body>
+</html>
